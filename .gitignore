@@ -1,0 +1,11 @@
+.DS_Store
+node_modules
+bower_components
+assets/site/
+npm-debug.log
+site/
+nohup.out
+.idea
+build/
+assets/video/
+WebVideoActiveXControl/codebase/WebComponents.exe
