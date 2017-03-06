@@ -77,77 +77,103 @@ class RoomParent{
 		if((typeof obj == 'object'&&obj.room!=this.name)||(typeof obj == 'string'&&obj!=this.name)) return;
 		if(typeof obj == 'object') this.heroPlan[obj.n] = obj;
 
+		//obj['AI'] 检测对应AI 的血量
+		if(typeof obj == 'object'&&obj['AI']){
+			for(let str in obj['AI']){
+				
+					for(let i=0;i<this.aiObj.value.length;i++){
+						let o = this.aiObj.value[i];
+						if(o.id === str) {
+							o.hp = obj['AI'][str];
+							if(obj['AI'][str]<=1) {
+								let id = o.id;
+								this.ai(id,i);
+							}
+							break;
+						}
+							
+					}
+			}
+		}
+
 		let L = this.aiObj.value.length;
-		console.log(L);
 		if(L==0){
 
-			for(let i = 0;i<3-L;i++){
-				let rand = (this.disArr.length * Math.random())|0;
-				let x = Math.floor(Math.random()*40) + this.disArr[rand].x;
-				let y = Math.floor(Math.random()*40) + this.disArr[rand].y;
-				let o = {id:this.aiId++,x:x,y:y,vx:0,vy:0,t:Date.now(),r:0,hp:100};
-				this.aiObj.value.push(o);
+			for(let i = 0;i<3;i++){
+				this.ai('AI_'+this.aiId++);
 			}
 			
 		}
 		else{
 
 			// console.log('刷新中...',L,this.heroPlan);
+			//刷新AI的位置
 			for(let i =0;i<L;i++){
 				
 				let aiObj = this.aiObj.value[i];
-				let minDis = 0;
+				let minDis = 10000;
 				let minStr = '';
 				let minT = 0;
-				let minX = 0;
-				let minY = 0;
-				// console.log('刷新AI1');
+				let XD = 0;
+				let YD = 0;
 				for(let str in this.heroPlan){
 					let planObj = this.heroPlan[str];
 					let X = Math.abs(aiObj.x - planObj.x);
 					let Y = Math.abs(aiObj.y - planObj.y);
 					let t = aiObj.t;
-					// console.log(aiObj.x,planObj.x,aiObj.y,planObj.y);
 					let dis = Math.sqrt(X * X + Y*Y);
 					//如果多个飞机都在ai的打击范围内,选择最小的那个
-					if(i==0) minDis = dis;
+					
 					if(minDis>dis){
 						minDis = dis;
 						minStr = str;
 						minT = t;
-						minX = planObj.x;
-						minY = planObj.y;
+						XD = planObj.x;
+						YD = planObj.y;
 					}
 					
 				}
-				aiObj.vx += +(0.5*(Math.random()-0.5).toFixed(2));
-				aiObj.vy += +(0.5*(Math.random()-0.5).toFixed(2));
+				aiObj.vx += +(0.2*(Math.random()-0.5).toFixed(2));
+				aiObj.vy += +(0.2*(Math.random()-0.5).toFixed(2));
 
 				//目标x，y
 				let aimX = aiObj.x + aiObj.vx;
 				let aimY = aiObj.y + aiObj.vy;
-				aiObj.r = Math.atan2(minY - aimY,minX - aimX)|0;
+				aiObj.r = (Math.atan2(aimY - aiObj.y,aimX - aiObj.x)*180/Math.PI)|0;
+
 				aiObj.x += aiObj.vx;
 				aiObj.y += aiObj.vy;
 
-				if(aiObj.x <= 50) aiObj.x = 50;
-				if(aiObj.x >= RoomParent.W) aiObj.x = RoomParent.W;
-				if(aiObj.y <= 50) aiObj.y = 50;
-				if(aiObj.x >= RoomParent.H) aiObj.y = RoomParent.H;
+				if(aiObj.x <= 50) {aiObj.x = 50;aiObj.vx*=-0.5};
+				if(aiObj.x >= RoomParent.W) {aiObj.x = RoomParent.W;aiObj.vx*=-0.5};
+				if(aiObj.y <= 50) {aiObj.y = 50;aiObj.vy*=-0.5};
+				if(aiObj.y >= RoomParent.H){aiObj.y = RoomParent.H;aiObj.vy*=-0.5};
 
 				aiObj.hasOwnProperty('attack')&&(delete aiObj.attack);
-				//距离小于100
-				if(minDis<100&&Date.now()-minT>300){
-					// aiObj.aim = minStr;
+				//距离小于600
+				if(minDis<300&&Date.now()-minT>600){
 					aiObj.attack = 1;
+					aiObj.t = Date.now();
+					aiObj.r = (Math.atan2(aimY - YD,aimX - XD)*180/Math.PI)|0;
 				}
-				console.log('刷新AI2');
+				
 			}
 			
 
 		}
 
 		this.fn(this.aiObj,this.name);
+
+	}
+
+	//创建一个AI
+	ai(id,i){
+
+		let rand = (this.disArr.length * Math.random())|0;
+		let x = Math.floor(Math.random()*40) + this.disArr[rand].x;
+		let y = Math.floor(Math.random()*40) + this.disArr[rand].y;
+		let o = {id:id,x:x,y:y,vx:0,vy:0,t:Date.now(),r:0,hp:100};
+		i?this.aiObj.value[i] = o:this.aiObj.value.push(o);
 
 	}
 

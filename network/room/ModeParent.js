@@ -22,6 +22,10 @@ class ModeParent{
 		TcpRouter.instance.reg('goLive',this.live.bind(this));
 		TcpRouter.instance.reg('planProp',this.planProp.bind(this));
 		TcpRouter.instance.reg('planWalk',this.planWalk.bind(this));
+		TcpRouter.instance.reg('AiHit',this.aiHit.bind(this));
+	}
+
+	die(obj,client){
 
 	}
 
@@ -88,9 +92,14 @@ class ModeParent{
 		return obj;
 	}
 
-	//客户端退出(pvp和nor都会处罚该方法)
-	over(obj,client){
+	aiHit(obj,client){
+		if(!obj.room||!this.roomData[obj.room]) return '';
+		LiveClient.allowList = this.modeRoom[obj.room];
+		return obj;
+	}
 
+	//客户端退出(pvp和nor都会执行方法)
+	over(obj,client){
 
 		for(let n = 0;n<this.modeWait.length;n++){
 			let c = this.modeWait[n].tar;
@@ -101,7 +110,6 @@ class ModeParent{
 			if(LiveClient.scList[str] === client){
 				LiveClient.scList[str].socket.destroy();
 				LiveClient.scList[str] = null;
-				
 				delete LiveClient.scList[str];
 				break;
 			}
@@ -133,10 +141,13 @@ class ModeParent{
 		//调用pvp中的方法
 		this.constructor.prototype.hasOwnProperty('destoryPVP')&&this.destoryPVP(n);
 
-		if(!this.roomData[n]) return;
+		if(!this.roomData[n]||!this.modeRoom[n]) return;
+
+		//清除房间
 		this.roomData[n].clear();
 		this.roomData[n] = null;
 
+		//清除房间的socket
 		let o = this.modeRoom[n];
 		for(let i=0,L=o.length;i<L;i++){
 			o[i].socket.end();

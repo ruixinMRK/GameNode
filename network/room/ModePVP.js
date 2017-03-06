@@ -14,24 +14,22 @@ class ModePVP extends ModeParent{
 		this.dieRoom = {};
 
 		TcpRouter.instance.reg('joinPVP',this.parsePVP.bind(this));
+		TcpRouter.instance.reg('resultPVP',this.resultPVP.bind(this));
 	}
 
-	//客户端死亡
-	die(obj,client){
+	//结果返回
+	resultPVP(obj,client){
 
-		if(obj.room.indexOf('pvp')<0) return;
+		if(obj.room.indexOf('pvp')<0||this.dieRoom[obj.room]) return;
 		
 		// console.log(obj.room,obj,'---pvp模式结束');
 		//死亡数据
 		if(!this.dieRoom[obj.room]){
 			this.dieRoom[obj.room] = 1;
 			// console.log('---godie数据处理成功');
-			obj.KPI = 'resultPVP';
 			WebSocket.instance.send(obj,this.modeRoom[obj.room]);
 		}
-		else{
-			return '';
-		}
+		
 		// this.recordPoints[obj.room][obj.name] = obj.s;
 		// if(!this.recordPoints[obj.room]) this.recordPoints[obj.room] = {l:0};
 		// let o = this.recordPoints[obj.room];
@@ -74,11 +72,8 @@ class ModePVP extends ModeParent{
 
 	parsePVP(obj,client){
 
-		
 		this.parse(obj,client);
 		//后期如果是战斗力匹配时，LiveClient.pvpWaitList应改为对象，比如说 key为one时 战斗力是100~200 
-		// console.log(obj.name,clientObj.ip,clientObj.port)
-		// console.log(LiveClient.pvpWaitList.length,'----pvp');
 		if(LiveClient.pvpWaitList.length%2==0){
 			this.createRoom();
 		}

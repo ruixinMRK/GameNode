@@ -107,8 +107,7 @@ class ModeNor extends ModeParent{
 				if(client === arr[i]){
 					LiveClient.norRoomData[str].splice(i,1);
 					if(this.roomData[str]&&this.roomData[str].l==0) {
-						this.destoryNor(str);
-						this.clear();
+						this.clear(str);
 					}
 					return;
 				}
@@ -117,6 +116,7 @@ class ModeNor extends ModeParent{
 
 	}
 
+	//当有客户端存在且房间时间过完
 	destoryNor(name){
 		this.clear(name);
 	}

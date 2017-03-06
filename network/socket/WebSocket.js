@@ -86,22 +86,22 @@ class WebSocket{
 	send(data,aList=null){
 
 		// let L = this.server.connections.length;
-		// console.log('send',data);
+		
 		let allowList = aList||LiveClient.allowList;
 		let isA = Array.isArray(allowList);
-
+		if(!allowList) return;
 		if(isA){
 			for(let i=0,L=allowList.length;i<L;i++){
 				let con =allowList[i];
 				if(!con||con.readyState !== con.OPEN) continue;
 
 				try{
-					// console.log(data,'--1');
 					con.sendText('start'+JSON.stringify(data) + 'end');
 				}
 				catch(e){
+					console.log('clinet is not online,top',e);
 					this.sendAll({KPI:'gameOver'},con);
-					console.log('客户端不存在',e);
+					LiveClient.allowList = null;
 				}
 
 			}
@@ -109,31 +109,18 @@ class WebSocket{
 		else{
 				if(!allowList||allowList.readyState !== allowList.OPEN) return;
 				try{
-					// console.log(data,'--2');
 					allowList.sendText('start'+JSON.stringify(data) + 'end');
 				}
 				catch(e){
+					console.log('clinet is not online,bottom',e);
 					this.sendAll({KPI:'gameOver'},allowList);
-					console.log('客户端不存在1',e);
+					LiveClient.allowList = null;		
 				}
 
 		}
 
 		LiveClient.allowList = null;
-		// for(let str in LiveClient.data){
-		// 	let con =LiveClient.data[str];
-		// 	//客户端本身的数据如需返回，需加上backData == '1'属性,其他客户端收不到
-		// 	if(con.readyState !== con.OPEN||!con||con=='1'||(!data.backData&&con===forbidList)) continue;
-		// 	if(data.backData == '1'&&con!==forbidList) continue;
-		// 	try{
-		// 		con.sendText('start'+JSON.stringify(data) + 'end');
-		// 	}
-		// 	catch(e){
-		// 		this.sendAll({KPI:'gameOver'},con);
-		// 		console.log('客户端不存在',e);
-		// 	}
-		// }
-			
+		
 	}
 
 	listening(){
