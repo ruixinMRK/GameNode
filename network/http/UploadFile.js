@@ -1,5 +1,6 @@
 //处理上传文件的
 var formidable = require('formidable');
+var fs=require('fs');
 
 class UploadFile{
 
@@ -50,7 +51,7 @@ class UploadFile{
 			// return false;
 
 			var url='./upload/'+Date.now()+suffix;
-			var fs=require('fs');
+			
 			//给图片修改名称
 			fs.renameSync(oldpath,url);
 			var u={ "error" : 0, "url" : url}

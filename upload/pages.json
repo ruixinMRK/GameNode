@@ -1,0 +1,35 @@
+{"pages":[
+    {
+        "pageID":0,
+        "pageName":"测试界面1",
+        "pageCover":"pageCovers/testPageCover.png",
+        "pageGrid":{
+            "rowHeight":100,
+            "margin":[0,0],
+            "containerPadding":[0,0],
+            "breakpoints":{"lg":1200},
+            "cols":{"lg":12}
+        },
+        "pageItems":[
+            {"i":"page_test_1_item_0","x":0,"y":0,"w":3,"h":3,"itemClassName":"div"},
+            {"i":"page_test_1_item_1","x":9,"y":0,"w":3,"h":3,"itemClassName":"div"}
+        ]
+    },
+    {
+        "pageID":1,
+        "pageName":"测试界面2",
+        "pageCover":"testPageCover.png",
+        "pageGrid":{
+            "rowHeight":100,
+            "margin":[0,0],
+            "containerPadding":[0,0],
+            "breakpoints":{"lg":1200},
+            "cols":{"lg":12}
+        },
+        "pageItems":[
+            {"i":"page_test_2_item_0","x":0,"y":0,"w":2,"h":2,"itemClassName":"div"},
+            {"i":"page_test_2_item_1","x":2,"y":0,"w":2,"h":2,"itemClassName":"div"},
+            {"i":"page_test_2_item_2","x":4,"y":2,"w":2,"h":2,"itemClassName":"div"}
+        ]
+    }
+]}

@@ -58,7 +58,8 @@ class ModeParent{
 	//房间的回调信息(主动发送道具和电脑AI)
 	sendData(data,roomName){
 		let roomData = this.modeRoom[roomName];
-		if(!roomData||roomData.length!=2) return;
+		// console.log(roomName,roomData,'---111');
+		if(!roomData) return;
 		WebSocket.instance.send(data,roomData);
 	}
 
@@ -108,7 +109,7 @@ class ModeParent{
 
 		for(let str in LiveClient.scList){
 			if(LiveClient.scList[str] === client){
-				LiveClient.scList[str].socket.destroy();
+				LiveClient.scList[str].socket.end();
 				LiveClient.scList[str] = null;
 				delete LiveClient.scList[str];
 				break;

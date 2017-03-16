@@ -30,44 +30,6 @@ class ModePVP extends ModeParent{
 			WebSocket.instance.send(obj,this.modeRoom[obj.room]);
 		}
 		
-		// this.recordPoints[obj.room][obj.name] = obj.s;
-		// if(!this.recordPoints[obj.room]) this.recordPoints[obj.room] = {l:0};
-		// let o = this.recordPoints[obj.room];
-		// if(!o[obj.name]){
-		// 	o[obj.name] = {s:obj.s,tar:client};
-		// 	o.l++;
-		// } 
-		
-		// if(o.l==2){
-
-		// 	let max = -1;
-		// 	let roomObj = this.recordPoints[obj.room];
-		// 	let rps = 0;
-		// 	for(let str in roomObj){
-		// 		rps = roomObj[str][s]|0;
-		// 		max = max>rps?max:rps;
-		// 	}
-
-		// 	for(let str in roomObj){
-
-		// 		rps = roomObj[str][s]|0;
-		// 		let match = null;
-		// 		let obj = {KPI:'resultPVP',succ:0};
-
-		// 		if(rps == max){
-		// 			obj.succ = 1;
-		// 		} 
-		// 		match = roomObj[str][tar];
-		// 		WebSocket.instance.send(obj,match);
-		// 	}
-
-		
-		// 	//断开其中一个,另外一个也会断开
-		// 	client.socket.end();
-		// }
-
-
-		// return obj;
 	}
 
 	parsePVP(obj,client){
@@ -123,29 +85,27 @@ class ModePVP extends ModeParent{
 					match = twoClient[1].tar;
 					matchName = twoClient[0].n;
 				}
-				let obj = {KPI:'matchPVP',room:roomName,p:matchName};
+				//生成房间信息
+				!this.roomData[roomName]&&(this.roomData[roomName] = new RoomPVP(roomName,this.sendData.bind(this),this.clear.bind(this)));
+
+				let obj = {KPI:'matchPVP',room:roomName,p:matchName,ai:this.roomData[roomName].aiO,prop:this.roomData[roomName].prop};
 				WebSocket.instance.send(obj,match);
 		}
 
 		
 
-		//生成房间信息
-		this.roomData[roomName] = new RoomPVP(roomName,this.sendData.bind(this));
+		
 		this.createRoom();
+		console.log('加入房间:'+roomName);
+	}
+
+	//计时器调用清除房间
+	clear(n){
+		super.clear(n);
 	}
 
 	//通知对手,一方客户端已掉线
 	destoryPVP(n){
-
-		// for(let str in this.recordPoints[n]){
-		// 		delete this.recordPoints[n][str][s];
-		// 		delete this.recordPoints[n][str][tar];
-		// }
-		
-		//判断如果是两者进行了数据结算,就不需要走下一步
-		// let rp = this.recordPoints[n];		
-		// if(rp) delete this.recordPoints[obj.room];
-		// ||rp
 
 		this.dieRoom[n]&&(delete this.dieRoom[n]);
 		if(!LiveClient.pvpRoomData[n]) return;

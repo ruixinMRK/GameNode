@@ -18,7 +18,10 @@ class ModeNor extends ModeParent{
 	//客户端死亡
 	die(obj,client){
 
+		// console.log(obj);
 		LiveClient.BackAllowList(obj.room,client);
+		obj.room&&this.roomData[obj.room].die(obj);
+		// console.log(obj,'---');
 		return obj;
 	}
 
@@ -49,7 +52,10 @@ class ModeNor extends ModeParent{
 			LiveClient.norRoomData[roomName] = [client];
 			LiveClient.norRoomData.l+=1;
 			this.roomData[roomName] = new RoomNOR(roomName,this.sendData.bind(this),this.destoryNor.bind(this));
-			let obj = {KPI:'matchNOR',room:roomName};
+			this.roomData[roomName].createMil(client);
+			
+			// console.log(this.roomData[roomName].prop,this.roomData[roomName].aiO);
+			let obj = {KPI:'matchNOR',room:roomName,ai:this.roomData[roomName].aiO,prop:this.roomData[roomName].prop};
 			WebSocket.instance.send(obj,client);
 			return;
 		}
@@ -66,11 +72,12 @@ class ModeNor extends ModeParent{
 				LiveClient.norRoomData[str] = [client];
 				//生成房间信息
 				this.roomData[roomName] = new RoomNOR(roomName,this.sendData.bind(this),this.destoryNor.bind(this));
+				
 			}
 			else{
 				//不等于null 表示房间没满 或者满了 需要先建房间
 				
-				if(c.length<20){
+				if(c.length<=20){
 					
 					roomName = str;
 					c.push(client);
@@ -82,31 +89,51 @@ class ModeNor extends ModeParent{
 					LiveClient.norRoomData[roomName] = [client];
 					LiveClient.norRoomData.l+=1;
 					this.roomData[roomName] = new RoomNOR(roomName,this.sendData.bind(this),this.destoryNor.bind(this));
+					
 				}
 					
 			}
 
-			let obj = {KPI:'matchNOR',room:roomName};
+			this.roomData[roomName].createMil(client);
+			let obj = {KPI:'matchNOR',room:roomName,ai:this.roomData[roomName].aiO,prop:this.roomData[roomName].prop};
 			WebSocket.instance.send(obj,client);
 
 		}
 
-		// console.log(roomName);	
+		console.log('加入房间:'+roomName);
 	}
 
 	//客户端离线
 	over(obj,client){
 		
+		//给其他用户发送某个客户端掉线
+		for(let str in LiveClient.norRoomData){
+			if(LiveClient.norRoomData[str]&&str!='l'&&LiveClient.norRoomData[str].indexOf(client)>-1){
+				let n = LiveClient.SearchName(client);//名字
+				LiveClient.BackAllowList(str,client);//限定发送范围
+				let obj = {KPI:'goDie',type:'-1',name:n};//数据格式
+				WebSocket.instance.send(obj);//发送
+				break;
+			}
+		}
+		
+		
+
+		// console.log('---nor');
 		super.over(obj,client);
+		// console.log('---nor1');
+		
+
 		for(let str in LiveClient.norRoomData){
 
 			let arr = LiveClient.norRoomData[str];
-			if(str=='l'||!arr||arr.length==0) return;
-			console.log('nor模式离线');
+			// console.log('---nor2');
+			if(str=='l'||!arr||arr.length==0) continue;
+			// console.log('nor模式离线');
 			for(let i=0;i<arr.length;i++){
 				if(client === arr[i]){
 					LiveClient.norRoomData[str].splice(i,1);
-					if(this.roomData[str]&&this.roomData[str].l==0) {
+					if(this.roomData[str]&&LiveClient.norRoomData[str].length==0) {
 						this.clear(str);
 					}
 					return;

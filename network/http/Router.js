@@ -1,10 +1,12 @@
 
 let UploadFile = require('./UploadFile.js');
 let Reg = require('./Reg.js');
+let Save = require('../dataV/Save.js');
 
 let route = {
 	'/upload': UploadFile,
-	'/user':Reg
+	'/user':Reg,
+	'/save':Save
 }
 //路由
 class Router{

@@ -31,6 +31,14 @@ class LiveClient{
 
 	}
 
+	static SearchName(client){
+		
+		for(let str in LiveClient.scList){
+			if(LiveClient.scList[str] === client) return str;
+		}
+		return '';
+	}
+
 }
 
 //在线用户

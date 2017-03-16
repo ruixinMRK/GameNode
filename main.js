@@ -6,6 +6,7 @@ var Router = require('./network/http/Router');
 var WebSocket = require('./network/socket/WebSocket');
 var ManagerParser = require('./network/manager/ManagerParser');
 
+
 //主类，分析各种请求状态
 class Main{
 	
@@ -40,10 +41,13 @@ class Main{
 			else{
 
 				// response.setHeader('Access-Control-Allow-Origin','http://60.205.222.103');
-				response.setHeader('Access-Control-Allow-Origin','*');
+				// http://www.mcrspace.com
+				response.setHeader('Access-Control-Allow-Origin','http://localhost:4004');//设置了支持跨域发送cookie时,这里的值不能为*
+				response.setHeader('Access-Control-Allow-Credentials','true');//支持跨域发送cookie
+				!request.headers.cookie&&response.setHeader('Set-Cookie','raw2=test;Max-Age=100;HttpOnly');//httpOnly 表示客户端无法用js获取
 				response.writeHeader(200,{'Content-Type':'text/plain;charset=utf-8'});
 
-				this.router.query(path,request,response);
+				
 
 				if (request.method.toUpperCase() == 'POST') {
 				            var postData = "";
@@ -58,10 +62,12 @@ class Main{
 				            /**
 				             * 这个是如果数据读取完毕就会执行的监听方法
 				             */
+				             let query = '';
 				            request.addListener("end", () =>{
-				                var query = qs.parse(postData);
+				                query = qs.parse(postData);
+				                this.router.query(path,query,response);
 				            });
-
+				            
 				}
 			        else if (request.method.toUpperCase() == 'GET') {
 			            /**
@@ -73,7 +79,7 @@ class Main{
 			             let urlPath = request.url;
 			            var params = url.parse(urlPath,true).query;
 
-		
+						// console.log(params);
 						// this.reg = new Reg();
 						// var pro = this.reg.insert(params);
 						// response.write('---')
@@ -84,7 +90,7 @@ class Main{
 						// 	response.write(JSON.stringify({'data':'error'}));
 						// 	this.close();
 						//  })
-
+						this.router.query(path,request,response);
 			        } else {
 			            //head put delete options etc.
 			        }

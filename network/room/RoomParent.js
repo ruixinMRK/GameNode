@@ -9,7 +9,7 @@ class RoomParent{
 		this.fn  = fn;
 		this.id = 0;
 		//道具数据
-		this.propArr = [];
+		this.propObj = {KPI:"planProp",value:[]};
 		//位置数据
 		this.disArr = [];
 		//电脑ai数据
@@ -17,6 +17,9 @@ class RoomParent{
 		this.aiId = 0;
 		//记录英雄数据
 		this.heroPlan = {};
+
+		//记录英雄飞机和AI
+		this.planeData = {KPI:'plane',heroPlane:{},ai:[]};
 
 		//用于道具进行定位
 		for(let i =0;i<Math.floor(RoomParent.W/100);i++){
@@ -35,9 +38,7 @@ class RoomParent{
 
 		let L = id?id:15;
 
-		let totalObj = {};
-		totalObj.KPI = 'planProp';
-
+		
 		if(!id){
 			//在初始化时发送15个道具
 			for(let i =0;i<L;i++){
@@ -48,26 +49,31 @@ class RoomParent{
 				obj.y = Math.floor(Math.random()*40) + this.disArr[rand].y;
 				obj.type = Math.floor(i/5);
 				obj.id = this.id++;
-				this.propArr[i] = obj;
+				this.propObj.value[i] = obj;
 			}	
-			totalObj.value = this.propArr;
+
 
 		}
 		else{
 
-			let arr = this.propArr.filter(item=>{
+			let arr = this.propObj.value.filter(item=>{
 				return item.id === id;
 			});
 
 			if(arr.length<1) return;
 			let obj = arr[0];
+			let index = this.propObj.value.indexOf(obj);
+
 			let rand = (this.disArr.length * Math.random())|0;
 			obj.x = Math.floor(Math.random()*100) + this.disArr[rand].x;
 			obj.y = Math.floor(Math.random()*100) + this.disArr[rand].y;
-			totalObj.value = [obj];
+			// totalObj.value = [obj];
+			this.propObj.value[index] = obj;
+			this.fn({KPI:'planProp',value:[obj]},this.name);
 		}
 
-		this.fn(totalObj,this.name);
+		// console.log(this.propObj,'---');
+		// this.fn(this.propObj,this.name);
 	}
 
 	//创建AI
@@ -106,7 +112,6 @@ class RoomParent{
 		}
 		else{
 
-			// console.log('刷新中...',L,this.heroPlan);
 			//刷新AI的位置
 			for(let i =0;i<L;i++){
 				
@@ -133,36 +138,44 @@ class RoomParent{
 					}
 					
 				}
-				aiObj.vx += +(0.2*(Math.random()-0.5).toFixed(2));
-				aiObj.vy += +(0.2*(Math.random()-0.5).toFixed(2));
-
-				//目标x，y
-				let aimX = aiObj.x + aiObj.vx;
-				let aimY = aiObj.y + aiObj.vy;
-				aiObj.r = (Math.atan2(aimY - aiObj.y,aimX - aiObj.x)*180/Math.PI)|0;
-
-				aiObj.x += aiObj.vx;
-				aiObj.y += aiObj.vy;
-
+				
 				if(aiObj.x <= 50) {aiObj.x = 50;aiObj.vx*=-0.5};
 				if(aiObj.x >= RoomParent.W) {aiObj.x = RoomParent.W;aiObj.vx*=-0.5};
 				if(aiObj.y <= 50) {aiObj.y = 50;aiObj.vy*=-0.5};
 				if(aiObj.y >= RoomParent.H){aiObj.y = RoomParent.H;aiObj.vy*=-0.5};
 
 				aiObj.hasOwnProperty('attack')&&(delete aiObj.attack);
-				//距离小于600
-				if(minDis<300&&Date.now()-minT>600){
-					aiObj.attack = 1;
-					aiObj.t = Date.now();
-					aiObj.r = (Math.atan2(aimY - YD,aimX - XD)*180/Math.PI)|0;
+				
+				//攻击操作
+				if(minDis<280){
+					aiObj.r = (Math.atan2(YD - aiObj.y,XD - aiObj.x)*180/Math.PI)|0;
+					if(Date.now()-minT>350&&minT!=0){
+						aiObj.attack = 1;
+						aiObj.t = Date.now();
+					}					
+				}
+				else if(Date.now() - aiObj.t > 500){
+
+					//AI移动操作
+					if(Math.random()>0.92||(aiObj.vy==0&&aiObj.vx==0)){
+						//拐弯操作
+						aiObj.vx += +(1.6*(Math.random()-0.5).toFixed(2));
+						aiObj.vy += +(1.6*(Math.random()-0.5).toFixed(2));
+						let aimX = aiObj.x + aiObj.vx;
+						let aimY = aiObj.y + aiObj.vy;
+						aiObj.r = (Math.atan2(aimY - aiObj.y,aimX - aiObj.x)*180/Math.PI)|0;
+					}
+					
+					aiObj.x += aiObj.vx;
+					aiObj.y += aiObj.vy;
 				}
 				
 			}
 			
-
+			this.fn(this.aiObj,this.name);
 		}
 
-		this.fn(this.aiObj,this.name);
+		// console.log(this.aiObj,'---this.aiObj');
 
 	}
 
@@ -177,12 +190,21 @@ class RoomParent{
 
 	}
 
+	get aiO(){
+		return this.aiObj.value;
+	}
+
+	get prop(){
+		return this.propObj.value;
+	}
+
 	clear(){
 		
 		this.fn = null;
-		this.propArr.length = this.disArr.length = this.aiObj.value.length = 0;
+		this.propObj.value.length = this.disArr.length = this.aiObj.value.length = 0;
 		this.aiObj = null;
 		this.heroPlan = null;
+		this.propObj = null;
 	}
 
 }

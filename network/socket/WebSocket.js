@@ -27,7 +27,7 @@ class WebSocket{
 		return WebSocket.__instance;
 	}
 
-	connect(socket){
+	connect(sc){
 
 		// console.log(socket.socket.remotePort,socket.socket.remoteAddress);
 		
@@ -36,9 +36,9 @@ class WebSocket{
 		// 	return;
 		// }
 
-		socket.on('text',data=>{
+		sc.on('text',data=>{
 			// console.log('ok');
-			if(socket.readyState !== socket.OPEN) return;
+			if(sc.readyState !== sc.OPEN) return;
 			this.respone += data;
 			// console.log(this.respone);
 			    //判断下bytes的长度，类型等
@@ -50,7 +50,7 @@ class WebSocket{
 				      try{
 
 				      	let obj = JSON.parse(str);
-				      	this.sendAll(obj,socket);
+				      	this.sendAll(obj,sc);
 				      	this.respone = '';
 				      }
 				      catch(e){
@@ -62,12 +62,13 @@ class WebSocket{
 			
 		});
 
-		socket.on("close",e=>{
+		sc.on("close",e=>{
 			// console.log('gameOver');
-			this.sendAll({KPI:'gameOver'},socket);
+			sc.socket.end();
+			this.sendAll({KPI:'gameOver'},sc);
 		});
-		socket.on("error",e=>{
-			this.sendAll({KPI:'gameOver'},socket);
+		sc.on("error",e=>{
+			this.sendAll({KPI:'gameOver'},sc);
 			// console.log('socketClient is err',e)
 		});
 		
@@ -87,8 +88,11 @@ class WebSocket{
 
 		// let L = this.server.connections.length;
 		
+
 		let allowList = aList||LiveClient.allowList;
 		let isA = Array.isArray(allowList);
+		// console.log(data);
+		
 		if(!allowList) return;
 		if(isA){
 			for(let i=0,L=allowList.length;i<L;i++){
