@@ -85,7 +85,9 @@ class RoomParent{
 
 	//存储英雄数据
 	handleHeroPlan(obj){
-		if(typeof obj == 'object') this.planeData.heroPlan[obj.n] = obj;
+		if(typeof obj == 'object'){
+			this.planeData.heroPlane[obj.n] = obj;
+		} 
 	}
 
 	// 检测对应AI 的血量
