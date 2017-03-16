@@ -112,6 +112,8 @@ class ModeNor extends ModeParent{
 				let n = LiveClient.SearchName(client);//名字
 				LiveClient.BackAllowList(str,client);//限定发送范围
 				let obj = {KPI:'goDie',type:'-1',name:n};//数据格式
+				//清除存储的飞机数据
+				this.roomData[str].planeData.heroPlane[n]&&(delete this.roomData[str].planeData.heroPlane[n]);
 				WebSocket.instance.send(obj);//发送
 				break;
 			}

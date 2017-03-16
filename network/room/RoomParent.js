@@ -31,9 +31,10 @@ class RoomParent{
 		this.timer = setInterval(e=>{
 
 			//重新刷新AI
+			if(!this.planeData) return;
 			this.createAi();
 			//发送数据
-			this.fn(this.planeData,this.name);
+			this.fn&&this.fn(this.planeData,this.name);
 
 		},25);
 
@@ -109,6 +110,7 @@ class RoomParent{
 	//创建AI
 	createAi(){
 
+		
 		let L = this.planeData.ai.length;
 		if(L==0){
 
@@ -206,13 +208,14 @@ class RoomParent{
 	}
 
 	clear(){
-		
+
+		clearInterval(this.timer);
 		this.fn = null;
 		this.propObj.value.length = this.disArr.length = this.planeData.ai.length = 0;
 		this.propObj = null;
 		this.planeData.planHero = null;
 		this.planeData = null;
-		clearInterval(this.timer);
+		
 	}
 
 
