@@ -12,12 +12,9 @@ class RoomParent{
 		this.propObj = {KPI:"planProp",value:[]};
 		//位置数据
 		this.disArr = [];
-		//电脑ai数据
-		this.aiObj = {KPI:'AI',value:[]};
+		
 		this.aiId = 0;
-		//记录英雄数据
-		this.heroPlan = {};
-
+	
 		//记录英雄飞机和AI
 		this.planeData = {KPI:'plane',heroPlane:{},ai:[]};
 
@@ -29,7 +26,16 @@ class RoomParent{
 		}
 
 		this.createProp();
-		this.createAi(this.name);
+		this.createAi();
+
+		this.timer = setInterval(e=>{
+
+			//重新刷新AI
+			this.createAi();
+			//发送数据
+			this.fn(this.planeData,this.name);
+
+		},25);
 
 	}
 
@@ -76,33 +82,34 @@ class RoomParent{
 		// this.fn(this.propObj,this.name);
 	}
 
-	//创建AI
-	createAi(obj){
+	//存储英雄数据
+	handleHeroPlan(obj){
+		if(typeof obj == 'object') this.planeData.heroPlan[obj.n] = obj;
+	}
 
-		//初次创建时,生成三个AI
-		if((typeof obj == 'object'&&obj.room!=this.name)||(typeof obj == 'string'&&obj!=this.name)) return;
-		if(typeof obj == 'object') this.heroPlan[obj.n] = obj;
-
-		//obj['AI'] 检测对应AI 的血量
-		if(typeof obj == 'object'&&obj['AI']){
-			for(let str in obj['AI']){
-				
-					for(let i=0;i<this.aiObj.value.length;i++){
-						let o = this.aiObj.value[i];
-						if(o.id === str) {
-							o.hp = obj['AI'][str];
-							if(obj['AI'][str]<=1) {
-								let id = o.id;
-								this.ai(id,i);
-							}
-							break;
+	// 检测对应AI 的血量
+	checkAI(obj){
+		
+		for(let str in obj['AI']){
+			
+				for(let i=0;i<this.planeData.ai.length;i++){
+					let o = this.planeData.ai[i];
+					if(o.id === str) {
+						o.hp = obj['AI'][str];
+						if(obj['AI'][str]<=1) {
+							let id = o.id;
+							this.ai(id,i);
 						}
-							
+						break;
 					}
-			}
+				}
 		}
 
-		let L = this.aiObj.value.length;
+	}
+	//创建AI
+	createAi(){
+
+		let L = this.planeData.ai.length;
 		if(L==0){
 
 			for(let i = 0;i<3;i++){
@@ -115,14 +122,14 @@ class RoomParent{
 			//刷新AI的位置
 			for(let i =0;i<L;i++){
 				
-				let aiObj = this.aiObj.value[i];
+				let aiObj = this.planeData.ai[i];
 				let minDis = 10000;
 				let minStr = '';
 				let minT = 0;
 				let XD = 0;
 				let YD = 0;
-				for(let str in this.heroPlan){
-					let planObj = this.heroPlan[str];
+				for(let str in this.planeData.heroPlane){
+					let planObj = this.planeData.heroPlane[str];
 					let X = Math.abs(aiObj.x - planObj.x);
 					let Y = Math.abs(aiObj.y - planObj.y);
 					let t = aiObj.t;
@@ -172,7 +179,7 @@ class RoomParent{
 				
 			}
 			
-			this.fn(this.aiObj,this.name);
+			// this.fn(this.aiObj,this.name);
 		}
 
 		// console.log(this.aiObj,'---this.aiObj');
@@ -186,12 +193,12 @@ class RoomParent{
 		let x = Math.floor(Math.random()*40) + this.disArr[rand].x;
 		let y = Math.floor(Math.random()*40) + this.disArr[rand].y;
 		let o = {id:id,x:x,y:y,vx:0,vy:0,t:Date.now(),r:0,hp:100};
-		i?this.aiObj.value[i] = o:this.aiObj.value.push(o);
+		i?this.planeData.ai[i] = o:this.planeData.ai.push(o);
 
 	}
 
 	get aiO(){
-		return this.aiObj.value;
+		return this.planeData.ai;
 	}
 
 	get prop(){
@@ -201,11 +208,13 @@ class RoomParent{
 	clear(){
 		
 		this.fn = null;
-		this.propObj.value.length = this.disArr.length = this.aiObj.value.length = 0;
-		this.aiObj = null;
-		this.heroPlan = null;
+		this.propObj.value.length = this.disArr.length = this.planeData.ai.length = 0;
 		this.propObj = null;
+		this.planeData.planHero = null;
+		this.planeData = null;
+		clearInterval(this.timer);
 	}
+
 
 }
 

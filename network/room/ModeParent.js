@@ -87,10 +87,12 @@ class ModeParent{
 		
 	
 		if(!this.roomData[obj.room]) return '';
-		this.roomData[obj.room]&&(this.roomData[obj.room].createAi(obj));
+		//处理飞机数据
+		this.roomData[obj.room]&&(this.roomData[obj.room].handleHeroPlan(obj));
+		////处理AI掉血数据
+		this.roomData[obj.room]&&obj['AI']&&(this.roomData[obj.room].checkAI(obj));
 
-		LiveClient.BackAllowList(obj.room,client);
-		return obj;
+		return '';
 	}
 
 	aiHit(obj,client){
