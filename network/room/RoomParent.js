@@ -36,7 +36,7 @@ class RoomParent{
 			//发送数据
 			this.fn&&this.fn(this.planeData,this.name);
 
-		},25);
+		},20);
 
 	}
 
@@ -168,10 +168,10 @@ class RoomParent{
 				else if(Date.now() - aiObj.t > 500){
 
 					//AI移动操作
-					if(Math.random()>0.92||(aiObj.vy==0&&aiObj.vx==0)){
+					if(Math.random()>0.95||(aiObj.vy==0&&aiObj.vx==0)){
 						//拐弯操作
-						aiObj.vx += +(1.6*(Math.random()-0.5).toFixed(2));
-						aiObj.vy += +(1.6*(Math.random()-0.5).toFixed(2));
+						aiObj.vx += +(1.2*(Math.random()-0.5).toFixed(2));
+						aiObj.vy += +(1.2*(Math.random()-0.5).toFixed(2));
 						let aimX = aiObj.x + aiObj.vx;
 						let aimY = aiObj.y + aiObj.vy;
 						aiObj.r = (Math.atan2(aimY - aiObj.y,aimX - aiObj.x)*180/Math.PI)|0;
@@ -182,12 +182,7 @@ class RoomParent{
 				}
 				
 			}
-			
-			// this.fn(this.aiObj,this.name);
 		}
-
-		// console.log(this.aiObj,'---this.aiObj');
-
 	}
 
 	//创建一个AI

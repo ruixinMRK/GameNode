@@ -12,7 +12,7 @@ class RoomNOR extends  RoomParent{
 		this.milExp = [];//战绩存储
 		this.name= name;
 		this.desFn = desFn;
-		this.totalTime = 60;
+		this.totalTime = 120;
 		this.timer = setInterval(e=>{
 
 			let callObj = {KPI:'NorTime',room:this.name,time:this.totalTime};
