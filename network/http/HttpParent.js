@@ -11,11 +11,7 @@ class HttpParent{
 	}
 
 	//判断链接数据库
-	query(req,res){
-		
-		let urlPath = req.url;
-		let params = url.parse(urlPath,true).query;
-		if(!params.name) return;
+	query(req,res,query){
 		this.connect();
 	}
 
@@ -27,11 +23,9 @@ class HttpParent{
 			this.Client.query(sqlStr,(err,results)=>{
 				if(err){
 					reject(err);
-					this.close();
 				}
 				else{
 					resolve(results);
-					this.close();
 				}
 			})
 
@@ -48,11 +42,11 @@ class HttpParent{
 					
 						if(err){
 							reject(err);
-							this.close();
+							
 						}
 						else{
 							resolve(JSON.stringify({'data':'1'}));
-							this.close();
+							
 						}
 				
 					})
@@ -147,6 +141,7 @@ class HttpParent{
 		// this.Client&&this.Client.end();destroy()
 		this.Client&&this.Client.destroy();
 		this.Client = null;
+		this.httpData = null;
 	}
 
 

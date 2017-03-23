@@ -5,6 +5,8 @@ var qs = require('querystring');
 var Router = require('./network/http/Router');
 var WebSocket = require('./network/socket/WebSocket');
 var ManagerParser = require('./network/manager/ManagerParser');
+var crypto = require('crypto');
+var LiveClient = require('./network/manager/LiveClient');
 
 
 //主类，分析各种请求状态
@@ -31,12 +33,12 @@ class Main{
 			if(request.url.indexOf('favicon.ico')>0) return;
 			let path = url.parse(request.url).pathname;
 
+			let params = qs.parse(url.parse(request.url).query);
+
+			
 			if(!Router.checkRouter(path)){
-
-			           response.writeHead(404, {'Content-Type': 'text/plain;charset=utf-8'});
-			           response.write("{'errcode':404,'errmsg':'404 页面不见啦'}");
-			           response.end();
-
+			    LiveClient.writeRes(response,404,"{'errcode':404,'errmsg':'404 木有对应的资源'}");
+			    return;
 			}
 			else{
 
@@ -44,56 +46,48 @@ class Main{
 				// http://www.mcrspace.com
 				response.setHeader('Access-Control-Allow-Origin','http://localhost:4004');//设置了支持跨域发送cookie时,这里的值不能为*
 				response.setHeader('Access-Control-Allow-Credentials','true');//支持跨域发送cookie
-				!request.headers.cookie&&response.setHeader('Set-Cookie','raw2=test;Max-Age=100;HttpOnly');//httpOnly 表示客户端无法用js获取
-				response.writeHeader(200,{'Content-Type':'text/plain;charset=utf-8'});
 
-				
+				let params = qs.parse(url.parse(request.url).query);
+				if(path==='/user'&&!request.headers.cookie){
+					//登陆和注册
+				}
+				else{
+
+					// console.log(request.url,request.headers.cookie,'---cookie');
+					if(!request.headers.cookie){
+						LiveClient.writeRes(response,401,"{'errcode':401,'errmsg':'非法!!'}");
+			           	return;
+					}
+					else{
+
+						let name = LiveClient.SerachUqid(request);
+						//验证失败
+						if(!name){
+							LiveClient.writeRes(response,401,"{'errcode':401,'errmsg':'非法!!'}");
+				           	return;
+						}
+					}
+					
+				}
+
+				// response.writeHeader(200,{'Content-Type':'text/plain;charset=utf-8'});
+
 
 				if (request.method.toUpperCase() == 'POST') {
-				            var postData = "";
-				            /**
-				             * 因为post方式的数据不太一样可能很庞大复杂，
-				             * 所以要添加监听来获取传递的数据
-				             * 也可写作 request.on("data",function(data){});
-				             */
-				            request.addListener("data", dat => {
-				                postData += dat;
-				            });
-				            /**
-				             * 这个是如果数据读取完毕就会执行的监听方法
-				             */
-				             let query = '';
-				            request.addListener("end", () =>{
-				                query = qs.parse(postData);
-				                this.router.query(path,query,response);
-				            });
-				            
+		            var postData = "";
+		            request.addListener("data", dat => {
+		                postData += dat;
+		            });
+		            request.addListener("end", () =>{
+		                let query = qs.parse(postData);
+		                this.router.query(path,request,response,query);
+		            });            
 				}
-			        else if (request.method.toUpperCase() == 'GET') {
-			            /**
-			             * 也可使用var query=qs.parse(url.parse(request.url).query);
-			             * 区别就是url.parse的arguments[1]为true：
-			             * ...也能达到‘querystring库’的解析效果，而且不使用querystring
-			             */
-			             // console.log(request.url);
-			             let urlPath = request.url;
-			            var params = url.parse(urlPath,true).query;
-
-						// console.log(params);
-						// this.reg = new Reg();
-						// var pro = this.reg.insert(params);
-						// response.write('---')
-						// pro.then(data=>{
-						// 	response.write(data);
-						// 	this.close();
-						// },err=>{
-						// 	response.write(JSON.stringify({'data':'error'}));
-						// 	this.close();
-						//  })
-						this.router.query(path,request,response);
-			        } else {
-			            //head put delete options etc.
-			        }
+		        else if (request.method.toUpperCase() == 'GET') {
+					this.router.query(path,request,response,params);
+		        } else {
+		            //head put delete options etc.
+		        }
 
 
 		}
@@ -101,10 +95,12 @@ class Main{
 
 		})
 		this.server.listen(8000,()=>{
-    		console.log("srver listen on port 8000");
+    		console.log("server listen on port 8000");
 		});
 
 	}
+
+
 }
 
 new Main();

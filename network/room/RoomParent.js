@@ -101,6 +101,7 @@ class RoomParent{
 						o.hp = obj['AI'][str];
 						if(obj['AI'][str]<=1) {
 							let id = o.id;
+							// console.log(id,i);
 							this.ai(id,i);
 						}
 						break;
@@ -158,9 +159,9 @@ class RoomParent{
 				aiObj.hasOwnProperty('attack')&&(delete aiObj.attack);
 				
 				//攻击操作
-				if(minDis<280){
+				if(minDis<250){
 					aiObj.r = (Math.atan2(YD - aiObj.y,XD - aiObj.x)*180/Math.PI)|0;
-					if(Date.now()-minT>350&&minT!=0){
+					if(Date.now()-minT>400&&minT!=0){
 						aiObj.attack = 1;
 						aiObj.t = Date.now();
 					}					
@@ -192,7 +193,7 @@ class RoomParent{
 		let x = Math.floor(Math.random()*40) + this.disArr[rand].x;
 		let y = Math.floor(Math.random()*40) + this.disArr[rand].y;
 		let o = {id:id,x:x,y:y,vx:0,vy:0,t:Date.now(),r:0,hp:100};
-		i?this.planeData.ai[i] = o:this.planeData.ai.push(o);
+		i!=undefined?this.planeData.ai[i] = o:this.planeData.ai.push(o);
 
 	}
 

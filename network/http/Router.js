@@ -2,11 +2,14 @@
 let UploadFile = require('./UploadFile.js');
 let Reg = require('./Reg.js');
 let Shop = require('./Shop.js');
+let UserInfo = require('./UserInfo.js');
+let LiveClient = require('../manager/LiveClient');
 
 let route = {
 	'/upload': UploadFile,
 	'/user':Reg,
-	'/shop':Shop
+	'/shop':Shop,
+	'/userinfo':UserInfo
 }
 //路由
 class Router{
@@ -14,14 +17,17 @@ class Router{
 		
 	}
 	
-	query(path,req,res){
-		// if(!route[path]) return false;
-
-		let className = this.toCamelString(path);
-		let C = route[path];
+	query(...args){
+		// path,req,res,query 四个参数
+		let className = this.toCamelString(args[0]);
+		let C = route[args[0]];
 		if(!this[className]) this[className] = new C();
 		//执行对应的操作命令
-		this[className].query(req,res);
+		if(args[1].method.toUpperCase()!=this[className].moth){
+			LiveClient.writeRes(args[2],200,JSON.stringify({err:1,mess:'请求类型不对'}));
+			return;
+		}
+		this[className].query(args[1],args[2],args[3]);
 
 	}
 
