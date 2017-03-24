@@ -30,7 +30,9 @@ class RoomNOR extends  RoomParent{
 	//计算分数
 	calGrades(){
 		this.milExp.forEach(item=>{
-			item.score = (item.kill + item.holdAtt/2 - item.die) * 2;
+			item.score = item.exp = item.money = (item.kill + item.holdAtt/2 - item.die) * 2;
+			// item.exp = (item.kill + item.holdAtt/2 - item.die) * 2;
+			// item.money = (item.kill + item.holdAtt/2 - item.die) * 2;
 		})
 		this.milExp.sort((a,b)=>b.score - a.score);
 		// console.log(this.milExp,'----计算数据');
@@ -40,7 +42,7 @@ class RoomNOR extends  RoomParent{
 	createMil(client){
 		let n = LiveClient.SearchName(client);
 		if(n&&!this.milExp.find(item=>item.name == n)){
-			let obj = {name:n,kill:0,die:0,holdAtt:0,score:0};
+			let obj = {name:n,kill:0,die:0,holdAtt:0,score:0,exp:0,money:0};
 			this.milExp.push(obj);
 		}
 		// n&&!this.milExp.milExp[n]&&this.milExp[n] = {kill:0,die:0,holdAtt:0,score:0};

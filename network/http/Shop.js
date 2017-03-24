@@ -16,9 +16,7 @@ class Shop extends HttpParent{
 	
 		super.query(req,res,query);	
 
-		// SELECT a.id,a.name,a.address,a.date,b.math,b.english,b.chinese FROM tb_demo065_tel AS b,tb_demo065 AS a WHERE a.id=b.id
-		
-		
+
 		this.data = {value:[]};
 
 		let u = LiveClient.SerachUqid(req);
