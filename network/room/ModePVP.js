@@ -27,7 +27,33 @@ class ModePVP extends ModeParent{
 		if(!this.dieRoom[obj.room]){
 			this.dieRoom[obj.room] = 1;
 			// console.log('---godie数据处理成功');
-			WebSocket.instance.send(obj,this.modeRoom[obj.room]);
+
+			//获取玩家的名称
+			let winnerName = LiveClient.SearchName(client);
+			let loserClient = this.modeRoom[obj.room].map(item=>{return item!==client})[0];
+			let loserName = LiveClient.SearchName(loserClient);
+
+			let sqlObj = null;
+
+			//分别给不同的玩家发送不同的金钱和经验数据  金钱和经验后期还需要更改  测试用
+			for(let i = 0;i<2;i++){
+				let c = null;
+				if(!i){
+					obj.money = 100;
+					obj.exp = 100;
+					c = client;
+					sqlObj = {money:100,exp:100,name:winnerName,mode:'pvp'};
+					
+				}else{
+					obj.money = 20;
+					obj.exp = 20;
+					c = loserClient;
+					sqlObj = {money:20,exp:20,name:winnerName,mode:'pvp'};
+				}
+				WebSocket.instance.send(obj,c);
+				this.roomData[obj.room].insertData(sqlObj);
+			}
+			
 		}
 		
 	}

@@ -1,7 +1,7 @@
 
 let LiveClient = require('../manager/LiveClient');
 let RoomParent = require('./RoomParent');
-
+let QuerySQL = require('../manager/QuerySQL');
 
 //房间20人混战
 class RoomNOR extends  RoomParent{
@@ -29,12 +29,17 @@ class RoomNOR extends  RoomParent{
 
 	//计算分数
 	calGrades(){
+
 		this.milExp.forEach(item=>{
 			item.score = item.exp = item.money = (item.kill + item.holdAtt/2 - item.die) * 2;
 			// item.exp = (item.kill + item.holdAtt/2 - item.die) * 2;
 			// item.money = (item.kill + item.holdAtt/2 - item.die) * 2;
+
+			let obj = {money:item.money,exp:item.exp,name:item.name,mode:'nor'};
+			this.insertData(obj);
 		})
 		this.milExp.sort((a,b)=>b.score - a.score);
+		
 		// console.log(this.milExp,'----计算数据');
 		return this.milExp;
 	}

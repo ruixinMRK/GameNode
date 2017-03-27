@@ -3,20 +3,19 @@ let url = require('url');
 let LiveClient = require('../manager/LiveClient');
 let mysql = require('mysql');
 let poolModule = require('generic-pool');
-let HttpParent = require('./HttpParent');
+let QuerySQL = require('../manager/QuerySQL');
 let crypto = require('crypto');
 
 //登录注册
-class Reg extends HttpParent{
+class Reg{
 
 	constructor(){
-		super();
 		this.moth = 'GET';
+		this.fristReg = false;
 	}
 
 	query(req,res,query){
 		
-		super.query(req,res,query);
 
 		if(!query['name']){
 			LiveClient.writeRes(res,401,"{'errcode':401,'errmsg':'非法!!'}");
@@ -25,29 +24,38 @@ class Reg extends HttpParent{
 		this.req = req;
 		this.res = res;
 
+		QuerySQL.instance.start();
 		let pro = this.insert(query);
 		pro.then(d=>{
 
-			// res.end(d);
+			//注册成功数据特殊处理
+			
+			this.fristReg&&(d = JSON.stringify({data:1}));
+
 			LiveClient.writeRes(res,200,d);
 			//新增一条个人私有产品数据
-			if(query.type==='reg'){
-				var  userAddSql = 'INSERT INTO user_info (id,name) VALUES(0,?)';
-				var  userAddSql_Params = [query.name];
-				super.insert(userAddSql,userAddSql_Params);
+			if(query.type==='reg'&&this.fristReg){
+				let sql = 'INSERT INTO user_info (id,name,lastuse) VALUES (0,?,?)';
+				QuerySQL.instance.querySql(sql,[query.name,'A']).then(e=>{
+					QuerySQL.instance.close();
+				});
+				this.fristReg = false;
+			}
+			else{
+				QuerySQL.instance.close();
 			}
 
-			this.close();
+			
 		}).catch(e=>{
 			console.log(e);
-			this.close();
+			QuerySQL.instance.close();
 		})
 
 	}
 
 	insert(obj){
 		
-		var  userAddSql = 'INSERT INTO userdata VALUES(0,?,?,?,\' \')';
+		var  userAddSql = "INSERT INTO userdata VALUES(0,?,?,?,'')";
 		var  userAddSql_Params = [obj.name,obj.password,new Date().getTime()];
 		
 		// console.log(JSON.stringify(obj));
@@ -56,7 +64,7 @@ class Reg extends HttpParent{
 			
 			//判断登陆成功了
 			if(obj.type=='login'&&data.length!=0) {
-				// LiveClient.scList[obj.name] = '1';
+				
 				console.log('登陆界面',obj.name);
 
 				//伪码
@@ -87,7 +95,8 @@ class Reg extends HttpParent{
 			// console.log(data,'data');
 			//写入数据
 			if(data.length == 0){
-				return super.insert(userAddSql,userAddSql_Params);	
+				this.fristReg = true;
+				return QuerySQL.instance.querySql(userAddSql,userAddSql_Params);	
 			}
 			//已经存在用户名了
 			return Promise.resolve(JSON.stringify({'data':'0'}));
@@ -107,9 +116,13 @@ class Reg extends HttpParent{
 		var selectSql = '';
 		if(!this.Client) Promise.resolve(JSON.stringify({'err':'err'}));
 		// console.log('正在查询reg');
-		if(obj.type=='reg')  selectSql = "SELECT * FROM userdata WHERE name = " + this.Client.escape(obj.name);
-		else if(obj.type=='login') selectSql = "SELECT * FROM userdata WHERE name = " + this.Client.escape(obj.name) + " and password= " + this.Client.escape(obj.password);
-		return super.search(selectSql);
+		var params = [obj.name];
+		if(obj.type=='reg') selectSql = "SELECT * FROM userdata WHERE name = ?";
+		else if(obj.type=='login'){
+			selectSql = "SELECT * FROM userdata WHERE name = ? and password= ?";
+			params.push(obj.password);
+		} 
+		return QuerySQL.instance.querySql(selectSql,params);
 	}
 
 }

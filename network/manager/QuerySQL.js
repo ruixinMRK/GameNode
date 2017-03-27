@@ -1,28 +1,32 @@
-let url = require('url');
+
+
 let mysql = require('mysql');
-let poolModule = require('generic-pool');
-
-//http父类
-class HttpParent{
-
-
+//操作数据库
+class QuerySQL{
+	
 	constructor(){
 		this.Client = null;//数据库连接
 	}
 
-	//判断链接数据库
-	query(req,res,query){
+	static get instance(){
+		if(!QuerySQL.__client){
+			QuerySQL.__client = new QuerySQL();
+		}
+		return QuerySQL.__client;
+	}
+	
+	start(){
 		this.connect();
 	}
 
-	//查询语句
-	search(sqlStr){
+	//查询语句(使用此种方案,无需再为进行编码,防止SQL注入)
+	querySql(sqlStr,sqlParams){
 
 		return new Promise((resolve,reject)=>{
 
-			this.Client.query(sqlStr,(err,results)=>{
+			this.Client.query(sqlStr,sqlParams,(err,results)=>{
 				if(err){
-					reject(err);
+					reject(JSON.stringify(err));
 				}
 				else{
 					resolve(results);
@@ -33,7 +37,7 @@ class HttpParent{
 
 	}
 
-	//插入数据
+	//已经不再使用
 	insert(sqlStr,sqlParams){
 
 		return new Promise((resolve,reject)=>{
@@ -144,8 +148,10 @@ class HttpParent{
 		this.httpData = null;
 	}
 
-
+	
 
 }
 
-module.exports = HttpParent;
+QuerySQL.__client = null;
+
+module.exports = QuerySQL;

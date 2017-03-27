@@ -1,45 +1,49 @@
 
 let url = require('url');
 let mysql = require('mysql');
-let HttpParent = require('./HttpParent');
 let LiveClient = require('../manager/LiveClient');
+let QuerySQL = require('../manager/QuerySQL');
+
 //登录注册
-class Shop extends HttpParent{
+class Shop{
 
 	constructor(){
-		super();
 		this.moth = 'POST';
 	}
 
 	//查询商品
 	query(req,res,query){
 	
-		super.query(req,res,query);	
-
+		QuerySQL.instance.start();
 
 		this.data = {value:[]};
 
 		let u = LiveClient.SerachUqid(req);
 		let name = u[1];
 		let sqlStr = '';
+		let sqlPar = [];
 
 		if(query.buyName){
 			//购买商品
-			sqlStr = 'SELECT price FROM shop_data WHERE nameEng='+ this.Client.escape(query.buyName);
+			sqlStr = 'SELECT price FROM shop_data WHERE nameEng = ?';
+			sqlPar = [query.buyName];
 
 			let money = 0;
 			let price = 0;
 			let bal = 0;
-			let pro = this.search(sqlStr);
+			let pro = QuerySQL.instance.querySql(sqlStr,sqlPar);
+			console.log(sqlStr,sqlPar);
 			pro.then(d=>{
 				
 				if(d.length==0){
 					return Promise.reject({err:0,mess:'商品不存在'});
 				}
 				price = Array.from(d)[0]['price'];
-				sqlStr = 'SELECT money FROM user_info WHERE name=' + this.Client.escape(name) + 'LIMIT 1';
+				sqlStr = 'SELECT money FROM user_info WHERE name= ? LIMIT 1';
+				sqlPar = [name];
+
 				// console.log(d,sqlStr);
-				return this.search(sqlStr);
+				return QuerySQL.instance.querySql(sqlStr,sqlPar);
 			}).then(data=>{
 
 				money = Array.from(data)[0]['money'];
@@ -50,17 +54,18 @@ class Shop extends HttpParent{
 					return Promise.reject({err:1,mess:'余额不足'});
 				}
 				
-				sqlStr = `UPDATE user_info SET ${query.buyName} = 1,money = ` + bal + ` WHERE name = ` + this.Client.escape(name);
+				sqlStr = `UPDATE user_info SET ${query.buyName} = 1,money = ? WHERE name = ?`;
 				// console.log(sqlStr);
-				return this.search(sqlStr);
+				sqlPar = [bal,name];
+				return QuerySQL.instance.querySql(sqlStr,sqlPar);
 
 			}).then(data=>{
 				LiveClient.writeRes(res,200,JSON.stringify({err:0}));
-				this.close();
+				QuerySQL.instance.close();
 			}).catch(e=>{
 				// console.log(e);
 				LiveClient.writeRes(res,200,JSON.stringify(e));
-				this.close();
+				QuerySQL.instance.close();
 			})
 
 
@@ -69,34 +74,34 @@ class Shop extends HttpParent{
 
 			sqlStr = 'SELECT nameCh,price,nameEng FROM shop_data;';
 			//查询商品
-			let pro = this.search(sqlStr);
+			let pro = QuerySQL.instance.querySql(sqlStr);
 			pro.then(d=>{
 			
 				if(Array.isArray(d)){
 					this.data.value = Array.from(d);
 				}
-				// console.log(d);
 				
-				sqlStr = 'SELECT * FROM user_info WHERE name = ' + this.Client.escape(name);
-				return this.search(sqlStr);
+				sqlStr = 'SELECT * FROM user_info WHERE name = ?';
+
+				return QuerySQL.instance.querySql(sqlStr,[name]);
 
 			}).then(data=>{
 
 				let o = Array.from(data)[0];
 				
 				for(let i =0;i<this.data.value.length;i++){
-					let name = this.data.value[i].nameEng;
-					if(o.hasOwnProperty(name)){
+					let nameEng = this.data.value[i].nameEng;
+					if(o[nameEng]==1){
 						this.data.value[i].have = 1;
 					}
-					delete this.data.value[i].nameEng;
+					// delete this.data.value[i].nameEng;
 				}
 
 				LiveClient.writeRes(res,200,JSON.stringify(this.data));
-				this.close();
+				QuerySQL.instance.close();
 			}).catch(err=>{
 				console.log(err);
-				this.close();
+				QuerySQL.instance.close();
 			})
 
 		}

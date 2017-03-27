@@ -1,5 +1,6 @@
 
 let LiveClient = require('../manager/LiveClient');
+let QuerySQL = require('../manager/QuerySQL');
 
 //房间
 class RoomParent{
@@ -82,6 +83,37 @@ class RoomParent{
 		// console.log(this.propObj,'---');
 		// this.fn(this.propObj,this.name);
 	}
+
+	//后期需要优化
+	insertData(obj){
+
+		QuerySQL.instance.start();
+
+		let sqlStr = 'SELECT exp,money FROM user_info WHERE name = ? LIMIT 1';
+		let params = [obj.name];
+
+		let money = 0;
+		let exp = 0;
+
+		let pro = QuerySQL.instance.querySql(sqlStr,params);
+		pro.then(d=>{
+			let obj = Array.from(d)[0];
+			money = parseInt(obj['money']) + parseInt(obj.money);
+			exp = parseInt(obj['exp']) + parseInt(obj.exp);
+			
+			sqlStr = 'UPDATE user_info SET money = ?, exp = ? WHERE name = ?';
+			params = [money,exp,obj.name];
+
+			return QuerySQL.instance.querySql(sqlStr,params);
+		}).then(d=>{
+			QuerySQL.instance.close();
+		}).catch(err=>{
+			console.log(obj.mode+'模式数据结算插入数据库错误');
+			QuerySQL.instance.close();
+		})
+
+
+	}	
 
 	//存储英雄数据
 	handleHeroPlan(obj){

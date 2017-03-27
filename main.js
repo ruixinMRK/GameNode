@@ -5,7 +5,6 @@ var qs = require('querystring');
 var Router = require('./network/http/Router');
 var WebSocket = require('./network/socket/WebSocket');
 var ManagerParser = require('./network/manager/ManagerParser');
-var crypto = require('crypto');
 var LiveClient = require('./network/manager/LiveClient');
 
 

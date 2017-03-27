@@ -6,7 +6,7 @@ class LiveClient{
 	constructor(){
 	}
 
-	//返回允许列表  房间号 当前socket
+	//设置允许列表  房间号 当前socket
 	static BackAllowList(roomStr,socket){
 
 		if(!roomStr) return;
@@ -33,6 +33,7 @@ class LiveClient{
 
 	}
 
+	//给定客户端  返回名字
 	static SearchName(client){
 			
 		for(let str in LiveClient.scList){
@@ -41,7 +42,7 @@ class LiveClient{
 		return '';
 	}
 
-	//匹配对应的用户  返回 布尔值和名称
+	//判断用户是否合法  返回 布尔值和名称
 	static SerachUqid(request){
 
 		let id = qs.parse(request.headers.cookie,';')['uqid'];
@@ -60,8 +61,9 @@ class LiveClient{
 		return null;
 	}
 
-
+	//处理http请求
 	static writeRes(res,status,log){
+
 		res.writeHead(status, {'Content-Type': 'text/plain;charset=utf-8'});
 		res.write(log);
 		res.end();
