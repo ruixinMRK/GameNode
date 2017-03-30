@@ -37,6 +37,12 @@ class RoomParent{
 			//发送数据
 			this.fn&&this.fn(this.planeData,this.name);
 
+			//清空数据
+			// this.planeData.heroPlane = {};
+			for(let str in this.planeData.heroPlane){
+				this.planeData.heroPlane[str] = [];
+			}
+
 		},20);
 
 	}
@@ -118,7 +124,8 @@ class RoomParent{
 	//存储英雄数据
 	handleHeroPlan(obj){
 		if(typeof obj == 'object'){
-			this.planeData.heroPlane[obj.n] = obj;
+			!this.planeData.heroPlane[obj.n]&&(this.planeData.heroPlane[obj.n] = []);
+			this.planeData.heroPlane[obj.n].push(obj);
 		} 
 	}
 
@@ -165,8 +172,11 @@ class RoomParent{
 				let minT = 0;
 				let XD = 0;
 				let YD = 0;
+
 				for(let str in this.planeData.heroPlane){
-					let planObj = this.planeData.heroPlane[str];
+					if(!this.planeData.heroPlane[str].length) continue;
+					// console.log(this.planeData.heroPlane,this.planeData.heroPlane.length==0);
+					let planObj = this.planeData.heroPlane[str][0];
 					let X = Math.abs(aiObj.x - planObj.x);
 					let Y = Math.abs(aiObj.y - planObj.y);
 					let t = aiObj.t;

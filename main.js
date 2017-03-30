@@ -2,10 +2,13 @@
 var http = require('http');
 var url = require('url');
 var qs = require('querystring');
+var PATH = require('path');
 var Router = require('./network/http/Router');
 var WebSocket = require('./network/socket/WebSocket');
 var ManagerParser = require('./network/manager/ManagerParser');
+var Manager = require('./network/manager/Manager');
 var LiveClient = require('./network/manager/LiveClient');
+var StaticResServer = require('./network/manager/StaticResServer');
 
 
 //主类，分析各种请求状态
@@ -18,6 +21,10 @@ class Main{
 		this.router = new Router();
 		this.webSocket =  WebSocket.instance;
 		let manager = new ManagerParser();
+		Manager.assetsPath = __dirname + '\\assets';//设置全部资源路径
+		this.staticServer = new StaticResServer();
+		
+		
 	}
 	
 	init(){
@@ -29,25 +36,27 @@ class Main{
 
 			// console.log(url.parse(request.url).pathname,'--pathname');
 			// console.log(request.headers.referer);
-			if(request.url.indexOf('favicon.ico')>0) return;
+			// if(request.url.indexOf('favicon.ico')>0) return;
 			let path = url.parse(request.url).pathname;
-
 			let params = qs.parse(url.parse(request.url).query);
+			if(path==='/') path+='index.html';
 
-			
-			if(!Router.checkRouter(path)){
+			if(PATH.extname(path)){
+				//请求资源
+				this.staticServer.query(request,response);
+			}
+			else if(!Router.checkRouter(path)){
+				//索取数据路由
 			    LiveClient.writeRes(response,404,"{'errcode':404,'errmsg':'404 木有对应的资源'}");
-			    return;
 			}
 			else{
 
-				// response.setHeader('Access-Control-Allow-Origin','http://60.205.222.103');
-				// http://www.mcrspace.com
-				response.setHeader('Access-Control-Allow-Origin','http://localhost:4004');//设置了支持跨域发送cookie时,这里的值不能为*
+				response.setHeader('Access-Control-Allow-Origin',request.headers.origin||'http://60.205.222.103');//设置了支持跨域发送cookie时,这里的值不能为*
 				response.setHeader('Access-Control-Allow-Credentials','true');//支持跨域发送cookie
-
+				response.setHeader('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
+									// Access-Control-Allow-Credentials
 				let params = qs.parse(url.parse(request.url).query);
-				if(path==='/user'&&!request.headers.cookie){
+				if((path==='/user'&&!request.headers.cookie)){
 					//登陆和注册
 				}
 				else{
@@ -68,9 +77,6 @@ class Main{
 					}
 					
 				}
-
-				// response.writeHeader(200,{'Content-Type':'text/plain;charset=utf-8'});
-
 
 				if (request.method.toUpperCase() == 'POST') {
 		            var postData = "";

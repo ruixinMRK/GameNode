@@ -7,5 +7,5 @@ site/
 nohup.out
 .idea
 build/
-assets/video/
-WebVideoActiveXControl/codebase/WebComponents.exe
+assets/
+

@@ -32,7 +32,7 @@ class Shop{
 			let price = 0;
 			let bal = 0;
 			let pro = QuerySQL.instance.querySql(sqlStr,sqlPar);
-			console.log(sqlStr,sqlPar);
+			// console.log(sqlStr,sqlPar);
 			pro.then(d=>{
 				
 				if(d.length==0){

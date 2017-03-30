@@ -55,17 +55,17 @@ class LiveClient{
 			let uip = LiveClient.uqid[s].ip;
 			// console.log(uid);
 			if(uid === id&&ip===uip){
-				return [true,s];
+				return [true,s,uid];
 			}
 		}
 		return null;
 	}
 
 	//处理http请求
-	static writeRes(res,status,log){
+	static writeRes(res,status,log,contentType = {'Content-Type': 'text/plain;charset=utf-8'},encoding ='utf8' ){
 
-		res.writeHead(status, {'Content-Type': 'text/plain;charset=utf-8'});
-		res.write(log);
+		res.writeHead(status, contentType);
+		res.write(log,encoding);
 		res.end();
 	}
 

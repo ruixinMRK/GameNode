@@ -3,13 +3,15 @@ let UploadFile = require('./UploadFile.js');
 let Reg = require('./Reg.js');
 let Shop = require('./Shop.js');
 let UserInfo = require('./UserInfo.js');
+let DestoryClient = require('./DestoryClient.js');
 let LiveClient = require('../manager/LiveClient');
 
 let route = {
 	'/upload': UploadFile,
 	'/user':Reg,
 	'/shop':Shop,
-	'/userinfo':UserInfo
+	'/userinfo':UserInfo,
+	'/des':DestoryClient,
 }
 //路由
 class Router{
@@ -35,7 +37,7 @@ class Router{
 	toCamelString(path){
 		path = path.split("").reverse().join("");
 		let arr = path.match(/\w+(?=\/)/g);
-
+		if(!arr) return 'mainHtml';
 		let str = arr.reduce((curr,prev)=>{
 			return curr+prev.substring(0,1).toUpperCase()+prev.substring(1);
 		},'');

@@ -65,6 +65,8 @@ class Reg{
 			//判断登陆成功了
 			if(obj.type=='login'&&data.length!=0) {
 				
+				// if(LiveClient.uqid[obj.name]) return Promise.resolve(JSON.stringify({'err':'1','mess':'账号已被登陆'}));
+
 				console.log('登陆界面',obj.name);
 
 				//伪码
@@ -86,7 +88,8 @@ class Reg{
 				}
 				// console.log(uqid,obj.name,LiveClient.uqid,'---uid');
 				// Max-Age=-1;
-				this.res.setHeader('Set-Cookie',[`uqid=${uqid};HttpOnly`, 'testCookie=1']);//httpOnly 表示客户端无法用js获取
+				//本地无法获取此cookie  因为跨域了
+				this.res.setHeader('Set-Cookie',[`uqid=${uqid};path=/;HttpOnly;`, 'testCookie=1;path=/']);//httpOnly 表示客户端无法用js获取
 
 				return Promise.resolve(JSON.stringify({'data':'1'}));	
 			}
