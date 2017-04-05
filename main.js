@@ -54,6 +54,7 @@ class Main{
 				response.setHeader('Access-Control-Allow-Origin',request.headers.origin||'http://60.205.222.103');//设置了支持跨域发送cookie时,这里的值不能为*
 				response.setHeader('Access-Control-Allow-Credentials','true');//支持跨域发送cookie
 				response.setHeader('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
+				response.setHeader('Accept-Ranges', 'bytes');//告诉客户端支持断点续传
 									// Access-Control-Allow-Credentials
 				let params = qs.parse(url.parse(request.url).query);
 				if((path==='/user'&&!request.headers.cookie)){

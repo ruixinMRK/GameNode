@@ -1,6 +1,7 @@
 
 let LiveClient = require('../manager/LiveClient');
 let manager = require('../manager/Manager');
+let Utils = require('./Utils');
 
 let http = require("http"),
     url = require("url"),
@@ -25,20 +26,16 @@ class StaticResServer{
 		pathName = pathName == '/'?'/index.html':pathName;
 
 		//html文件和其他文件单独处理 html用utf8  其他文件用binary
-		let realPath = path.join(manager.assetsPath,path.normalize(pathName.replace(/\.\./g, "")));//真是资源路径
+		let realPath = path.join(manager.assetsPath,path.normalize(pathName.replace(/\.\./g, "")));//真实资源路径
 		let encode = pathName=='/index.html'?'utf8':'binary';
-		// console.log(manager.assetsPath,realPath);
-		this.existFile(realPath).then(e=>{
-				return this.readF(realPath,encode);
-			}	
-		).then(data=>{
-				let extName = path.extname(realPath);//后缀名
-				extName = extName ? extName.slice(1) : "";
-				//匹配资源对应的类型
-				let contentType = StaticResServer.type[extName] || "text/plain";
-
-				// console.log(realPath,contentType);
+		// console.log(manager.assetsPath,realPath,'---path');
+		Utils.existFile(realPath).then(e=>{
 				
+				this.extName = path.extname(realPath);//后缀名
+				this.extName = this.extName ? this.extName.slice(1) : "";
+				//匹配资源对应的类型
+				this.contentType = StaticResServer.type[this.extName] || "text/plain";
+
 				//定义资源缓存时间,防止服务器压力增加
 				let expiresObj = {
 				    fileMatch: /^(gif|png|jpg|js|css|wav|mp3)$/ig,
@@ -51,7 +48,7 @@ class StaticResServer{
 				// ETag头：用来判断文件是否已经被修改，区分不同语言和Session等等。
 
 				//设置缓存时间
-				if (extName.match(expiresObj.fileMatch)) {
+				if (this.extName.match(expiresObj.fileMatch)) {
 				    let expires = new Date();
 				    expires.setTime(expires.getTime() + expiresObj.maxAge * 1000);
 				    res.setHeader("Expires", expires.toUTCString());
@@ -80,56 +77,67 @@ class StaticResServer{
 		            LiveClient.writeRes(res,304,"Not Modified","Not Modified");
 		            return;
 		        }
-				
-				//匹配需要压缩的资源
-				let compress = /css|js|html/ig;
-				
-		        //对文本文件进行gzip压缩，可以将文件压缩得很小，大大减少网络流量。
-				// 为了满足zlib模块的调用模式，将读取文件改为流的形式。
-				// 对于支持压缩的文件格式以及浏览器端接受gzip或deflate压缩，则调用相对应的压缩方式。
-				// 对于不支持的，则以管道方式转发给response
-		        // let raw = fs.createReadStream(realPath);
-		        // let acceptEncoding = request.headers['accept-encoding'] || '';
-		        // if (acceptEncoding.match(/\bdeflate\b/)) {
-		        //   res.writeHead(200, { 'Content-Encoding': 'deflate' });
-		        //   raw.pipe(zlib.createDeflate()).pipe(res);
-		        // } else if (acceptEncoding.match(/\bgzip\b/)) {
-		        //   res.writeHead(200, { 'Content-Encoding': 'gzip' });
-		        //   raw.pipe(zlib.createGzip()).pipe(res);
-		        // } else {
-		        //   res.writeHead(200, {});
-		        //   raw.pipe(res);
-		        // }
+				   
+		        //是否是符合断点续传的要求
+		        let rang = req.headers["range"];
+		        if (rang) {
+		        	
+				    var range = Utils.parseRange(rang, stat.size);
+				    if (range) {
+				    	//如果符合断点续传 则设置范围和总资源长度
+				        res.setHeader("Content-Range", "bytes " + range.start + "-" + range.end + "/" + stat.size);
+				        res.setHeader("Content-Length", (range.end - range.start + 1));
+				        var raw = fs.createReadStream(realPath, {
+				        	"start": range.start,
+				            "end": range.end
+				        });
+				        this.compressHandle(raw, 206, "Partial Content");
+				    } else {
+				    	//如果rang不合法
+				        res.removeHeader("Content-Length");
+				        res.writeHead(416, "Request Range Not Satisfiable");
+				        res.end();
+				    }
+				} else {
 
-		        LiveClient.writeRes(res,200,data,{'Content-Type':contentType},encode);
+				    var raw = fs.createReadStream(realPath);
+				    this.compressHandle(raw, 200, "Ok");
+				}
 
-			}
-		).catch((obj)=>{
-			LiveClient.writeRes(res,obj.status,obj.mess);
+
+		        
+			}	
+		).catch(obj=>{
+			console.log(obj,'err');
+			LiveClient.writeRes(res,400,'err');
 		});
 
 	}
 
-	//判断项目是否存在
-	existFile(url){
-		return new Promise((res,rej)=>{
-			fs.exists(url, (exists) => {
-				if(!exists) rej({status:404,mess:'文件不存在!'});
-				else res();
-			})
-		})
+	//压缩资源
+	compressHandle(raw, statusCode, reasonPhrase){
+		var stream = raw;
+		//判断浏览器可以接受的编码类型
+	    var acceptEncoding = this.req.headers['accept-encoding'] || "";
+	    //匹配需要压缩的资源
+		let compress = /css|js|html/ig;
+	    let matched = this.extName.match(compress);
+	    //设置不同的编码
+	    //对文本文件进行gzip压缩，可以将文件压缩得很小，大大减少网络流量。
+		// 为了满足zlib模块的调用模式，将读取文件改为流的形式。
+		// 对于支持压缩的文件格式以及浏览器端接受gzip或deflate压缩，则调用相对应的压缩方式。
+		// 对于不支持的，则以管道方式转发给response
+	    if (matched && acceptEncoding.match(/\bgzip\b/)) {
+	        this.res.setHeader("Content-Encoding", "gzip");
+	        stream = raw.pipe(zlib.createGzip());
+	    } else if (matched && acceptEncoding.match(/\bdeflate\b/)) {
+	        this.res.setHeader("Content-Encoding", "deflate");
+	        stream = raw.pipe(zlib.createDeflate());
+	    }
+	    this.res.writeHead(statusCode, reasonPhrase);
+	    stream.pipe(this.res);
 	}
-
-	//读取文件
-	readF(path,type){
-
-		return new Promise((res,rej)=>{
-			fs.readFile(path, type, (err, file) => {
-				if(err) rej({status:500,mess:'读取文件错误!'});
-				else res(file);
-			})
-		})
-	}	
+		
 
 }
 
