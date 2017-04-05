@@ -81,6 +81,9 @@ class StaticResServer{
 		            return;
 		        }
 				
+				//匹配需要压缩的资源
+				let compress = /css|js|html/ig;
+				
 		        //对文本文件进行gzip压缩，可以将文件压缩得很小，大大减少网络流量。
 				// 为了满足zlib模块的调用模式，将读取文件改为流的形式。
 				// 对于支持压缩的文件格式以及浏览器端接受gzip或deflate压缩，则调用相对应的压缩方式。
